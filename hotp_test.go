@@ -25,7 +25,7 @@ func TestGenerate(t *testing.T) {
 	length := 6
 
 	for i, v := range testValues {
-		otp := Generate(secret, uint64(i), length)
+		otp := Generate(secret, i, length)
 		if otp != v {
 			t.Errorf("Expected %v to be %v", otp, v)
 		}

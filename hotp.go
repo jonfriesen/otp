@@ -15,7 +15,7 @@ func hmacSha1(key []byte, input []byte) []byte {
 
 // Generate Generates an HOTP
 // Note: HOTP recommended length is 6 as per RFC 4226
-func Generate(secret []byte, count uint64, length int) string {
+func Generate(secret []byte, count int, length int) string {
 
 	text := make([]byte, 8)
 	for i := len(text) - 1; i >= 0; i-- {
@@ -49,9 +49,9 @@ func Generate(secret []byte, count uint64, length int) string {
 // Check validates an HOTP
 // accepts secret, count, length to generate the OTP's to validate
 // an incoming OTP, and how many times to increase the validation count
-func Check(secret []byte, count uint64, length int, otp string, future int) (bool, int) {
+func Check(secret []byte, count int, length int, otp string, future int) (bool, int) {
 	for i := 0; i < future; i++ {
-		c := (count + uint64(i))
+		c := count + i
 		if Generate(secret, c, length) == otp {
 			return true, int(c)
 		}
@@ -61,7 +61,7 @@ func Check(secret []byte, count uint64, length int, otp string, future int) (boo
 
 // Sync checks next OTP until it finds two sequential matches
 // max of 100 checks returns success and new count location
-func Sync(secret []byte, count uint64, length int, otp1 string, otp2 string) (bool, int) {
+func Sync(secret []byte, count int, length int, otp1 string, otp2 string) (bool, int) {
 	v, i := Check(secret, count, length, otp1, 100)
 
 	// return false if no match is found
@@ -70,9 +70,9 @@ func Sync(secret []byte, count uint64, length int, otp1 string, otp2 string) (bo
 	}
 
 	// check second otp if first was succesful
-	v2, i2 := Check(secret, (count + uint64(i+1)), length, otp2, 1)
+	v2, i2 := Check(secret, (count + i + 1), length, otp2, 1)
 	if v2 {
-		return true, int(count + uint64(i2))
+		return true, int(count + i2)
 	}
 
 	// return false if second check fails
