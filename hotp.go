@@ -5,6 +5,8 @@ import (
 	"crypto/sha1"
 	"fmt"
 	"math"
+	"math/rand"
+	"time"
 )
 
 func hmacSha1(key string, input []byte) []byte {
@@ -78,4 +80,33 @@ func Sync(secret string, count int, length int, otp1 string, otp2 string) (bool,
 	// return false if second check fails
 	return false, 0
 
+}
+
+// Secret Quickly Generates a Secret of 20 characters
+func Secret() string {
+	const alphaNumeric = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890"
+	const length = 20
+	const (
+		letterIdxBits = 6                    // 6 bits to represent a letter index
+		letterIdxMask = 1<<letterIdxBits - 1 // All 1-bits, as many as letterIdxBits
+		letterIdxMax  = 63 / letterIdxBits   // # of letter indices fitting in 63 bits
+	)
+
+	rng := rand.NewSource(time.Now().UnixNano())
+
+	bs := make([]byte, length)
+
+	for i, c, r := length-1, rng.Int63(), letterIdxMax; i >= 0; {
+		if r == 0 {
+			c, r = rng.Int63(), letterIdxMax
+		}
+		if idx := int(c & letterIdxMask); idx < len(alphaNumeric) {
+			bs[i] = alphaNumeric[idx]
+			i--
+		}
+		c = c >> letterIdxBits
+		r--
+	}
+
+	return string(bs)
 }
