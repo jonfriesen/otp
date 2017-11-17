@@ -19,15 +19,36 @@ func TestHmacSha1(t *testing.T) {
 	}
 }
 
-func TestGenerateOtp(t *testing.T) {
+func TestGenerate(t *testing.T) {
 	secret := []byte("12345678901234567890")
 	testValues := []string{"755224", "287082", "359152", "969429", "338314", "254676", "287922", "162583", "399871", "520489"}
 	length := 6
 
 	for i, v := range testValues {
-		otp := GenerateOTP(secret, uint64(i), length)
+		otp := Generate(secret, uint64(i), length)
 		if otp != v {
 			t.Errorf("Expected %v to be %v", otp, v)
 		}
+	}
+}
+
+func TestCheck(t *testing.T) {
+	secret := []byte("12345678901234567890")
+	// testValues := []string{"755224", "287082", "359152", "969429", "338314", "254676", "287922", "162583", "399871", "520489"}
+	length := 6
+
+	v, i := Check(secret, 0, length, "755224", 0)
+	if v && i != 0 {
+		t.Error("HOTP at spot 1 did not succeed ")
+	}
+
+	v, i = Check(secret, 1, length, "969429", 3)
+	if v && i != 3 {
+		t.Error("HOTP did not count into the future as expected")
+	}
+
+	v, i = Check(secret, 2, length, "520489", 3)
+	if v {
+		t.Error("HOTP Check succeeded when expected to fail")
 	}
 }
