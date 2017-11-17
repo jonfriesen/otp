@@ -7,15 +7,15 @@ import (
 	"math"
 )
 
-func hmacSha1(key []byte, input []byte) []byte {
-	h := hmac.New(sha1.New, key)
+func hmacSha1(key string, input []byte) []byte {
+	h := hmac.New(sha1.New, []byte(key))
 	h.Write(input)
 	return h.Sum(nil)
 }
 
 // Generate Generates an HOTP
 // Note: HOTP recommended length is 6 as per RFC 4226
-func Generate(secret []byte, count int, length int) string {
+func Generate(secret string, count int, length int) string {
 
 	text := make([]byte, 8)
 	for i := len(text) - 1; i >= 0; i-- {
@@ -49,7 +49,7 @@ func Generate(secret []byte, count int, length int) string {
 // Check validates an HOTP
 // accepts secret, count, length to generate the OTP's to validate
 // an incoming OTP, and how many times to increase the validation count
-func Check(secret []byte, count int, length int, otp string, future int) (bool, int) {
+func Check(secret string, count int, length int, otp string, future int) (bool, int) {
 	for i := 0; i < future; i++ {
 		c := count + i
 		if Generate(secret, c, length) == otp {
@@ -61,7 +61,7 @@ func Check(secret []byte, count int, length int, otp string, future int) (bool, 
 
 // Sync checks next OTP until it finds two sequential matches
 // max of 100 checks returns success and new count location
-func Sync(secret []byte, count int, length int, otp1 string, otp2 string) (bool, int) {
+func Sync(secret string, count int, length int, otp1 string, otp2 string) (bool, int) {
 	v, i := Check(secret, count, length, otp1, 100)
 
 	// return false if no match is found
