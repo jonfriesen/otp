@@ -1,4 +1,4 @@
-package hotp
+package otp
 
 import (
 	"reflect"
@@ -26,7 +26,9 @@ func TestGenerate(t *testing.T) {
 	testValues := []string{"755224", "287082", "359152", "969429", "338314", "254676", "287922", "162583", "399871", "520489"}
 
 	for i, v := range testValues {
-		otp := Generate(defaultSecret, i, defaultLength)
+		h := NewHOTP(defaultSecret, i, 0, 0)
+		h.count = i
+		otp := h.Generate()
 		if otp != v {
 			t.Errorf("Expected %v to be %v", otp, v)
 		}
@@ -35,17 +37,20 @@ func TestGenerate(t *testing.T) {
 
 func TestCheck(t *testing.T) {
 
-	v, i := Check(defaultSecret, 0, defaultLength, "755224", 1)
+	h := NewHOTP(defaultSecret, 0, 0, 1)
+	v, i := h.Check("755224")
 	if !v || i != 0 {
 		t.Error("HOTP at spot 1 did not succeed")
 	}
 
-	v, i = Check(defaultSecret, 1, defaultLength, "969429", 3)
+	h = NewHOTP(defaultSecret, 1, 0, 3)
+	v, i = h.Check("969429")
 	if !v || i != 3 {
 		t.Error("HOTP did not count into the future as expected")
 	}
 
-	v, i = Check(defaultSecret, 2, defaultLength, "520489", 3)
+	h = NewHOTP(defaultSecret, 2, 0, 3)
+	v, i = h.Check("520489")
 	if v {
 		t.Error("HOTP Check succeeded when expected to fail")
 	}
@@ -53,22 +58,23 @@ func TestCheck(t *testing.T) {
 
 func TestSync(t *testing.T) {
 
-	v, i := Sync(defaultSecret, 0, defaultLength, "755224", "287082")
-	if !v || i != 1 {
+	h := NewHOTP(defaultSecret, 0, 0, 0)
+	v, i := h.Sync("755224", "287082")
+	if !v || i != 2 {
 		t.Error("HOTP Sync at beginning failed")
 	}
 
-	v, i = Sync(defaultSecret, 0, defaultLength, "254676", "287922")
-	if !v || i != 6 {
+	v, i = h.Sync("254676", "287922")
+	if !v || i != 7 {
 		t.Error("HOTP future sync failed")
 	}
 
-	v, i = Sync(defaultSecret, 0, defaultLength, "123456", "520489")
+	v, i = h.Sync("123456", "520489")
 	if v {
 		t.Error("HOTP expected to not find first OTP")
 	}
 
-	v, i = Sync(defaultSecret, 0, defaultLength, "254676", "520489")
+	v, i = h.Sync("254676", "520489")
 	if v {
 		t.Error("HOTP expected to not find second OTP")
 	}
