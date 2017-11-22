@@ -17,12 +17,12 @@ import "github.com/jonfriesen/otp"
 // To generate and checking a Time base OTP
 totpToken := NewTOTP("secret", Time, 8, 30, 2)
 totp := totpToken.Generate()
-isValid := totp.Check("12345678")
+isValid := totp == totpToken.Check("12345678")
 ...
 // To generate and checking a HMAC OTP 
 hotpToken := NewHOTP("secret", 0, 6, 5)
 hotp := hotpToken.Generate()
-isValid := hotp.Check("123456")
+isValid := hotp == hotpToken.Check("123456")
 ```
 
 ## Considerations and Variations from RFC
@@ -33,7 +33,7 @@ The checksum option is not included in this implementation as I feel most real w
 The truncation offset is intended to give the entire hash digest the opportunity to contribute to the truncated portion of the hash. Removing this section does not make the algorithm more or less secure.
 
 ## Motivation
-The OTP package was created to offer a simple, close implementation of RFC 4226 for easy consumption in Go.
+The OTP package was created to offer a simple, close implementation of RFC 4226 and RFC 6238 for easy consumption in Go.
 
 ## Contributions
 Pull Requests are welcome, please include tests covering your contributions. 
