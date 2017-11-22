@@ -1,6 +1,6 @@
-# HOTP
+# OTP
 
-This package is an implementation of [RFC 4226: HOTP: An HMAC-Based One-Time Password Algorithm](https://tools.ietf.org/html/rfc4226) with slight deviations from the RFC based on the algorithmic reference implementation and tested using the RFC test values to ensure comaptibility with other HOTP systems. 
+This package is an implementation of [RFC 4226: HOTP: An HMAC-Based One-Time Password Algorithm](https://tools.ietf.org/html/rfc4226) and [RFC 6238: TOTP: Time-Based One-Time Password Algorithm](https://tools.ietf.org/html/rfc6238) with slight deviations from the RFC based on the algorithmic reference implementation and tested using the RFC test values to ensure comaptibility with other HOTP and TOTP systems. 
 
 ## Installation
 
@@ -10,12 +10,19 @@ Clone this repository into your Go src directory or pull it automatically with:
 $ go get github.com/jonfriesen/otp
 ```
 
-
 ## Usage
 ```
 import "github.com/jonfriesen/otp"
-
-otp := hotp.GenerateOTP(...)
+...
+// To generate and checking a Time base OTP
+totpToken := NewTOTP("secret", Time, 8, 30, 2)
+totp := totpToken.Generate()
+isValid := totp.Check("12345678")
+...
+// To generate and checking a HMAC OTP 
+hotpToken := NewHOTP("secret", 0, 6, 5)
+hotp := hotpToken.Generate()
+isValid := hotp.Check("123456")
 ```
 
 ## Considerations and Variations from RFC
