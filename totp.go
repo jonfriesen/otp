@@ -2,8 +2,6 @@ package otp
 
 import "time"
 
-const defaultWindow int = 30
-
 // Totp is a struct holding the details for a time based hmac-sha1 otp
 type Totp struct {
 	secret     string
@@ -36,7 +34,7 @@ func NewTOTP(secret string, timeBox time.Time, length int, window int, windowSiz
 	}
 
 	if window == 0 {
-		t.window = defaultWindow
+		t.window = 30
 	} else {
 		t.window = window
 	}

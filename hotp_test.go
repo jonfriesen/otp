@@ -79,3 +79,23 @@ func TestSync(t *testing.T) {
 		t.Error("HOTP expected to not find second OTP")
 	}
 }
+
+func TestNewHotp(t *testing.T) {
+	dToken := NewHOTP("", 0, 0, 0)
+
+	if len(dToken.secret) != 20 ||
+		dToken.count != 0 ||
+		dToken.length != 6 ||
+		dToken.window != 5 {
+		t.Errorf("NewHOTP (default) returned an object with unexpected properties %+v", dToken)
+	}
+
+	cToken := NewHOTP("secret", 5, 3, 100)
+
+	if cToken.secret != "secret" ||
+		cToken.count != 5 ||
+		cToken.length != 3 ||
+		cToken.window != 100 {
+		t.Errorf("NewHOTP (custom) returned an object with unexpected properties %+v", cToken)
+	}
+}
