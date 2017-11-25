@@ -3,24 +3,26 @@ package otp
 import (
 	"crypto/hmac"
 	"crypto/sha1"
+	"encoding/base32"
 	"fmt"
 	"math"
 )
 
 // Hotp is a struct holding the details for a hmac-sha1 otp
 type Hotp struct {
-	secret string
-	count  int
-	length int
-	window int
+	secret   string
+	count    int
+	length   int
+	window   int
+	isBase32 bool
 }
 
 // NewHOTP constructor for hotp object
-func NewHOTP(secret string, count int, length int, window int) *Hotp {
+func NewHOTP(secret string, count int, length int, window int, isBase32 bool) *Hotp {
 	h := new(Hotp)
 
 	if len(secret) == 0 {
-		h.secret = Secret()
+		h.secret = Secret(isBase32)
 	} else {
 		h.secret = secret
 	}
@@ -62,7 +64,13 @@ func (h Hotp) Generate() string {
 		h.count = h.count >> 8
 	}
 
-	hash := hmacSha1(h.secret, text)
+	var hash []byte
+	if h.isBase32 {
+		decodedSecret, _ := base32.StdEncoding.DecodeString(h.secret)
+		hash = hmacSha1(string(decodedSecret), text)
+	} else {
+		hash = hmacSha1(h.secret, text)
+	}
 
 	// Where our slice starts (lower 4 bits as offset)
 	offset := int(hash[len(hash)-1] & 0xf)

@@ -1,12 +1,13 @@
 package otp
 
 import (
+	"encoding/base32"
 	"math/rand"
 	"time"
 )
 
 // Secret Quickly Generates a Secret of 20 characters
-func Secret() string {
+func Secret(isBase32 bool) string {
 	const alphaNumericValues = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890"
 	const length = 20
 	const (
@@ -29,6 +30,10 @@ func Secret() string {
 		}
 		c = c >> idBits
 		r--
+	}
+
+	if isBase32 {
+		return base32.StdEncoding.EncodeToString(bs)
 	}
 
 	return string(bs)

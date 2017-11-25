@@ -9,14 +9,15 @@ type Totp struct {
 	length     int
 	window     int
 	windowSize int
+	isBase32   bool
 }
 
 // NewTOTP constructor for hotp object
-func NewTOTP(secret string, timeBox time.Time, length int, window int, windowSize int) *Totp {
+func NewTOTP(secret string, timeBox time.Time, length int, window int, windowSize int, isBase32 bool) *Totp {
 	t := new(Totp)
 
 	if len(secret) == 0 {
-		t.secret = Secret()
+		t.secret = Secret(isBase32)
 	} else {
 		t.secret = secret
 	}
@@ -52,7 +53,7 @@ func NewTOTP(secret string, timeBox time.Time, length int, window int, windowSiz
 // Note: TOTP recommended length is 8 as per RFC 6238
 func (t Totp) Generate() string {
 	tw := int(t.timeBox.Unix()) / t.window
-	h := NewHOTP(t.secret, tw, t.length, t.window)
+	h := NewHOTP(t.secret, tw, t.length, t.window, t.isBase32)
 	return h.Generate()
 }
 
