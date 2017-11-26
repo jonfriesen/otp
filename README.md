@@ -15,12 +15,12 @@ $ go get github.com/jonfriesen/otp
 import "github.com/jonfriesen/otp"
 ...
 // To generate and checking a Time base OTP
-totpToken := NewTOTP("secret", Time, 8, 30, 2)
+totpToken := NewTOTP("secret", Time, 8, 30, 2, sha1.New)
 totp := totpToken.Generate()
 isValid := totp == totpToken.Check("12345678")
 ...
 // To generate and checking a HMAC OTP 
-hotpToken := NewHOTP("secret", 0, 6, 5)
+hotpToken := NewHOTP("secret", 0, 6, 5, sha1.New)
 hotp := hotpToken.Generate()
 isValid := hotp == hotpToken.Check("123456")
 ```
