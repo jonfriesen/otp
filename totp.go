@@ -1,6 +1,10 @@
 package otp
 
-import "time"
+import (
+	"crypto/sha1"
+	"hash"
+	"time"
+)
 
 // Totp is a struct holding the details for a time based hmac-sha1 otp
 type Totp struct {
@@ -10,10 +14,11 @@ type Totp struct {
 	window     int
 	windowSize int
 	isBase32   bool
+	hasher     func() hash.Hash
 }
 
 // NewTOTP constructor for hotp object
-func NewTOTP(secret string, timeBox time.Time, length int, window int, windowSize int, isBase32 bool) *Totp {
+func NewTOTP(secret string, timeBox time.Time, length int, window int, windowSize int, isBase32 bool, hasher func() hash.Hash) *Totp {
 	t := new(Totp)
 
 	if len(secret) == 0 {
@@ -46,6 +51,12 @@ func NewTOTP(secret string, timeBox time.Time, length int, window int, windowSiz
 		t.windowSize = windowSize
 	}
 
+	if hasher == nil {
+		t.hasher = sha1.New
+	} else {
+		t.hasher = hasher
+	}
+
 	return t
 }
 
@@ -53,7 +64,7 @@ func NewTOTP(secret string, timeBox time.Time, length int, window int, windowSiz
 // Note: TOTP recommended length is 8 as per RFC 6238
 func (t Totp) Generate() string {
 	tw := int(t.timeBox.Unix()) / t.window
-	h := NewHOTP(t.secret, tw, t.length, t.window, t.isBase32)
+	h := NewHOTP(t.secret, tw, t.length, t.window, t.isBase32, t.hasher)
 	return h.Generate()
 }
 

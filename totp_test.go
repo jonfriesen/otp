@@ -16,7 +16,7 @@ func TestGenerateTotp(t *testing.T) {
 	}
 
 	for tm, eOtp := range timeMap {
-		otp := NewTOTP(defaultSecret, tm, 0, 0, 0, false)
+		otp := NewTOTP(defaultSecret, tm, 0, 0, 0, false, nil)
 		rOtp := otp.Generate()
 
 		if rOtp != eOtp {
@@ -36,14 +36,14 @@ func TestCheckTotp(t *testing.T) {
 	}
 
 	for tm, eOtp := range timeMap {
-		otp := NewTOTP(defaultSecret, tm, 0, 0, 0, false)
+		otp := NewTOTP(defaultSecret, tm, 0, 0, 0, false, nil)
 		isValid := otp.Check(eOtp)
 		if !isValid {
 			t.Errorf("Expected %v to be valid but was %v", eOtp, isValid)
 		}
 
 		// Base32 tests
-		otp32 := NewTOTP(defaultSecret, tm, 0, 0, 0, true)
+		otp32 := NewTOTP(defaultSecret, tm, 0, 0, 0, true, nil)
 		isValid32 := otp32.Check(eOtp)
 		if !isValid32 {
 			t.Errorf("Expected base32 encoded %v to be valid but was %v", eOtp, isValid32)
@@ -51,7 +51,7 @@ func TestCheckTotp(t *testing.T) {
 	}
 
 	testTime := time.Date(1970, 1, 1, 0, 0, 59, 0, time.UTC)
-	otp := NewTOTP(defaultSecret, testTime, 0, 0, 0, false)
+	otp := NewTOTP(defaultSecret, testTime, 0, 0, 0, false, nil)
 	isValid := otp.Check("12345678")
 	if isValid {
 		t.Errorf("Expected %v to be invalid but was 94287082", isValid)
@@ -60,7 +60,7 @@ func TestCheckTotp(t *testing.T) {
 
 func TestNewTOTP(t *testing.T) {
 	testTime := time.Date(1970, 1, 1, 0, 0, 59, 0, time.UTC)
-	cToken := NewTOTP("secret", testTime, 10, 45, 3, false)
+	cToken := NewTOTP("secret", testTime, 10, 45, 3, false, nil)
 
 	if cToken.secret != "secret" ||
 		cToken.timeBox != testTime ||
@@ -71,7 +71,7 @@ func TestNewTOTP(t *testing.T) {
 	}
 
 	testTime = time.Now()
-	dToken := NewTOTP("", time.Time{}, 0, 0, 0, false)
+	dToken := NewTOTP("", time.Time{}, 0, 0, 0, false, nil)
 
 	isTimeSimilar :=
 		testTime.Minute() == dToken.timeBox.Minute() &&

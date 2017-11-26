@@ -5,6 +5,7 @@ import (
 	"crypto/sha1"
 	"encoding/base32"
 	"fmt"
+	"hash"
 	"math"
 )
 
@@ -15,10 +16,11 @@ type Hotp struct {
 	length   int
 	window   int
 	isBase32 bool
+	hasher   func() hash.Hash
 }
 
 // NewHOTP constructor for hotp object
-func NewHOTP(secret string, count int, length int, window int, isBase32 bool) *Hotp {
+func NewHOTP(secret string, count int, length int, window int, isBase32 bool, hasher func() hash.Hash) *Hotp {
 	h := new(Hotp)
 
 	if len(secret) == 0 {
@@ -45,11 +47,17 @@ func NewHOTP(secret string, count int, length int, window int, isBase32 bool) *H
 		h.window = window
 	}
 
+	if hasher == nil {
+		h.hasher = sha1.New
+	} else {
+		h.hasher = hasher
+	}
+
 	return h
 }
 
-func hmacSha1(key string, input []byte) []byte {
-	h := hmac.New(sha1.New, []byte(key))
+func hmacSha(key string, input []byte, hasher func() hash.Hash) []byte {
+	h := hmac.New(hasher, []byte(key))
 	h.Write(input)
 	return h.Sum(nil)
 }
@@ -67,9 +75,9 @@ func (h Hotp) Generate() string {
 	var hash []byte
 	if h.isBase32 {
 		decodedSecret, _ := base32.StdEncoding.DecodeString(h.secret)
-		hash = hmacSha1(string(decodedSecret), text)
+		hash = hmacSha(string(decodedSecret), text, h.hasher)
 	} else {
-		hash = hmacSha1(h.secret, text)
+		hash = hmacSha(h.secret, text, h.hasher)
 	}
 
 	// Where our slice starts (lower 4 bits as offset)
