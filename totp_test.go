@@ -1,52 +1,92 @@
 package otp
 
 import (
+	"crypto/sha1"
+	"crypto/sha256"
+	"crypto/sha512"
+	"hash"
 	"testing"
 	"time"
 )
 
-func TestGenerateTotp(t *testing.T) {
-	timeMap := map[time.Time]string{
-		time.Date(1970, 1, 1, 0, 0, 59, 0, time.UTC):     `94287082`,
-		time.Date(2005, 3, 18, 1, 58, 29, 0, time.UTC):   `07081804`,
-		time.Date(2005, 3, 18, 1, 58, 31, 0, time.UTC):   `14050471`,
-		time.Date(2009, 2, 13, 23, 31, 30, 0, time.UTC):  `89005924`,
-		time.Date(2033, 5, 18, 3, 33, 20, 0, time.UTC):   `69279037`,
-		time.Date(2603, 10, 11, 11, 33, 20, 0, time.UTC): `65353130`,
+const (
+	secret256 string = "12345678901234567890123456789012"
+	secret512 string = "1234567890123456789012345678901234567890123456789012345678901234"
+)
+
+type hashConfig struct {
+	secret string
+	otp    string
+	hasher func() hash.Hash
+}
+
+func getTimeTestMap() map[time.Time][]hashConfig {
+	return map[time.Time][]hashConfig{
+		time.Date(1970, 1, 1, 0, 0, 59, 0, time.UTC): []hashConfig{
+			hashConfig{defaultSecret, `94287082`, sha1.New},
+			hashConfig{secret256, `46119246`, sha256.New},
+			hashConfig{secret512, `90693936`, sha512.New},
+		},
+		time.Date(2005, 3, 18, 1, 58, 29, 0, time.UTC): []hashConfig{
+			hashConfig{defaultSecret, `07081804`, sha1.New},
+			hashConfig{secret256, `68084774`, sha256.New},
+			hashConfig{secret512, `25091201`, sha512.New},
+		},
+		time.Date(2005, 3, 18, 1, 58, 31, 0, time.UTC): []hashConfig{
+			hashConfig{defaultSecret, `14050471`, sha1.New},
+			hashConfig{secret256, `67062674`, sha256.New},
+			hashConfig{secret512, `99943326`, sha512.New},
+		},
+		time.Date(2009, 2, 13, 23, 31, 30, 0, time.UTC): []hashConfig{
+			hashConfig{defaultSecret, `89005924`, sha1.New},
+			hashConfig{secret256, `91819424`, sha256.New},
+			hashConfig{secret512, `93441116`, sha512.New},
+		},
+		time.Date(2033, 5, 18, 3, 33, 20, 0, time.UTC): []hashConfig{
+			hashConfig{defaultSecret, `69279037`, sha1.New},
+			hashConfig{secret256, `90698825`, sha256.New},
+			hashConfig{secret512, `38618901`, sha512.New},
+		},
+		time.Date(2603, 10, 11, 11, 33, 20, 0, time.UTC): []hashConfig{
+			hashConfig{defaultSecret, `65353130`, sha1.New},
+			hashConfig{secret256, `77737706`, sha256.New},
+			hashConfig{secret512, `47863826`, sha512.New},
+		},
 	}
+}
 
-	for tm, eOtp := range timeMap {
-		otp := NewTOTP(defaultSecret, tm, 0, 0, 0, false, nil)
-		rOtp := otp.Generate()
+func TestGenerateTotp(t *testing.T) {
+	timeMap := getTimeTestMap()
 
-		if rOtp != eOtp {
-			t.Errorf("Expected %v but got %v", eOtp, rOtp)
+	for tm, otpHashMap := range timeMap {
+		for _, hc := range otpHashMap {
+			otp := NewTOTP(hc.secret, tm, 0, 0, 0, false, hc.hasher)
+			rOtp := otp.Generate()
+
+			if rOtp != hc.otp {
+				t.Errorf("Expected %v but got %v", hc.otp, rOtp)
+			}
 		}
 	}
 }
 
 func TestCheckTotp(t *testing.T) {
-	timeMap := map[time.Time]string{
-		time.Date(1970, 1, 1, 0, 0, 59, 0, time.UTC):     `94287082`,
-		time.Date(2005, 3, 18, 1, 58, 29, 0, time.UTC):   `07081804`,
-		time.Date(2005, 3, 18, 1, 58, 31, 0, time.UTC):   `14050471`,
-		time.Date(2009, 2, 13, 23, 31, 30, 0, time.UTC):  `89005924`,
-		time.Date(2033, 5, 18, 3, 33, 20, 0, time.UTC):   `69279037`,
-		time.Date(2603, 10, 11, 11, 33, 20, 0, time.UTC): `65353130`,
-	}
+	timeMap := getTimeTestMap()
+	for tm, otpHashMap := range timeMap {
+		for _, hc := range otpHashMap {
 
-	for tm, eOtp := range timeMap {
-		otp := NewTOTP(defaultSecret, tm, 0, 0, 0, false, nil)
-		isValid := otp.Check(eOtp)
-		if !isValid {
-			t.Errorf("Expected %v to be valid but was %v", eOtp, isValid)
-		}
+			otp := NewTOTP(hc.secret, tm, 0, 0, 0, false, hc.hasher)
+			isValid := otp.Check(hc.otp)
+			if !isValid {
+				t.Errorf("Expected %v to be valid but was %v", hc.otp, isValid)
+			}
 
-		// Base32 tests
-		otp32 := NewTOTP(defaultSecret, tm, 0, 0, 0, true, nil)
-		isValid32 := otp32.Check(eOtp)
-		if !isValid32 {
-			t.Errorf("Expected base32 encoded %v to be valid but was %v", eOtp, isValid32)
+			// Base32 tests
+			otp32 := NewTOTP(hc.secret, tm, 0, 0, 0, true, hc.hasher)
+			isValid32 := otp32.Check(hc.otp)
+			if !isValid32 {
+				t.Errorf("Expected base32 encoded %v to be valid but was %v", hc.otp, isValid32)
+			}
 		}
 	}
 
