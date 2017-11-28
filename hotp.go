@@ -3,6 +3,8 @@ package otp
 import (
 	"crypto/hmac"
 	"crypto/sha1"
+	"crypto/sha256"
+	"crypto/sha512"
 	"encoding/base32"
 	"fmt"
 	"hash"
@@ -19,38 +21,53 @@ type Hotp struct {
 	hasher   func() hash.Hash
 }
 
+// HotpConfig holds user friendly configurations for creating
+// tokens using the NewHOTP function otherwise the Hotp
+// object can be created independantly.
+type HotpConfig struct {
+	secret    string
+	count     int
+	length    int
+	window    int
+	useBase32 bool
+	crypto    string
+}
+
 // NewHOTP constructor for hotp object
-func NewHOTP(secret string, count int, length int, window int, isBase32 bool, hasher func() hash.Hash) *Hotp {
+func NewHOTP(c *HotpConfig) *Hotp {
 	h := new(Hotp)
 
-	if len(secret) == 0 {
-		h.secret = Secret(isBase32)
+	if len(c.secret) == 0 {
+		h.secret = Secret(c.useBase32)
 	} else {
-		h.secret = secret
+		h.secret = c.secret
 	}
 
-	if count == 0 {
+	if c.count == 0 {
 		h.count = 0 // TODO this should be a const default value
 	} else {
-		h.count = count
+		h.count = c.count
 	}
 
-	if length == 0 {
+	if c.length == 0 {
 		h.length = 6 // TODO this should be a const default value
 	} else {
-		h.length = length
+		h.length = c.length
 	}
 
-	if window == 0 {
+	if c.window == 0 {
 		h.window = 5
 	} else {
-		h.window = window
+		h.window = c.window
 	}
 
-	if hasher == nil {
+	switch c.crypto {
+	case "sha256":
+		h.hasher = sha256.New
+	case "sha512":
+		h.hasher = sha512.New
+	default:
 		h.hasher = sha1.New
-	} else {
-		h.hasher = hasher
 	}
 
 	return h

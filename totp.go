@@ -2,6 +2,8 @@ package otp
 
 import (
 	"crypto/sha1"
+	"crypto/sha256"
+	"crypto/sha512"
 	"hash"
 	"time"
 )
@@ -17,44 +19,61 @@ type Totp struct {
 	hasher     func() hash.Hash
 }
 
+// TotpConfig holds user friendly configurations for creating
+// tokens using the NewTOTP function otherwise the Hotp
+// object can be created independantly.
+type TotpConfig struct {
+	secret     string
+	time       time.Time
+	length     int
+	window     int
+	windowSize int
+	useBase32  bool
+	crypto     string
+}
+
 // NewTOTP constructor for hotp object
-func NewTOTP(secret string, timeBox time.Time, length int, window int, windowSize int, isBase32 bool, hasher func() hash.Hash) *Totp {
+// func NewTOTP(secret string, timeBox time.Time, length int, window int, windowSize int, isBase32 bool, hasher func() hash.Hash) *Totp {
+func NewTOTP(c *TotpConfig) *Totp {
 	t := new(Totp)
 
-	if len(secret) == 0 {
-		t.secret = Secret(isBase32)
+	if len(c.secret) == 0 {
+		t.secret = Secret(c.useBase32)
 	} else {
-		t.secret = secret
+		t.secret = c.secret
 	}
 
-	if timeBox.IsZero() {
+	if c.time.IsZero() {
 		t.timeBox = time.Now() // TODO this should be a const default value
 	} else {
-		t.timeBox = timeBox
+		t.timeBox = c.time
 	}
 
-	if length == 0 {
+	if c.length == 0 {
 		t.length = 8 // TODO this should be a const default value
 	} else {
-		t.length = length
+		t.length = c.length
 	}
 
-	if window == 0 {
+	if c.window == 0 {
 		t.window = 30
 	} else {
-		t.window = window
+		t.window = c.window
 	}
 
-	if windowSize == 0 {
+	if c.windowSize == 0 {
 		t.windowSize = 2
 	} else {
-		t.windowSize = windowSize
+		t.windowSize = c.windowSize
 	}
 
-	if hasher == nil {
+	switch c.crypto {
+	case "sha256":
+		t.hasher = sha256.New
+	case "sha512":
+		t.hasher = sha512.New
+	default:
 		t.hasher = sha1.New
-	} else {
-		t.hasher = hasher
 	}
 
 	return t
@@ -64,7 +83,14 @@ func NewTOTP(secret string, timeBox time.Time, length int, window int, windowSiz
 // Note: TOTP recommended length is 8 as per RFC 6238
 func (t Totp) Generate() string {
 	tw := int(t.timeBox.Unix()) / t.window
-	h := NewHOTP(t.secret, tw, t.length, t.window, t.isBase32, t.hasher)
+	h := Hotp{
+		secret:   t.secret,
+		count:    tw,
+		length:   t.length,
+		window:   t.window,
+		isBase32: t.isBase32,
+		hasher:   t.hasher,
+	}
 	return h.Generate()
 }
 
