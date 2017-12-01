@@ -27,10 +27,10 @@ func TestGenerate(t *testing.T) {
 	testValues := []string{"755224", "287082", "359152", "969429", "338314", "254676", "287922", "162583", "399871", "520489"}
 
 	for i, v := range testValues {
-		c := HotpConfig{secret: defaultSecret, count: i}
+		c := HotpConfig{Secret: defaultSecret, Count: i}
 		h := NewHOTP(&c)
 		// h := NewHOTP(defaultSecret, i, 0, 0, false, nil)
-		h.count = i
+		h.Count = i
 		otp := h.Generate()
 		if otp != v {
 			t.Errorf("Expected %v to be %v", otp, v)
@@ -38,7 +38,7 @@ func TestGenerate(t *testing.T) {
 
 		// Base32 tests
 		h32 := NewHOTP(&c)
-		h32.count = i
+		h32.Count = i
 		otp32 := h32.Generate()
 		if otp32 != v {
 			t.Errorf("Expected base32 encoded %v to be %v", otp32, v)
@@ -47,21 +47,21 @@ func TestGenerate(t *testing.T) {
 }
 
 func TestCheck(t *testing.T) {
-	c := HotpConfig{secret: defaultSecret, window: 1}
+	c := HotpConfig{Secret: defaultSecret, Window: 1}
 	h := NewHOTP(&c)
 	v, i := h.Check("755224")
 	if !v || i != 0 {
 		t.Error("HOTP at spot 1 did not succeed")
 	}
 
-	c = HotpConfig{secret: defaultSecret, count: 1, window: 3}
+	c = HotpConfig{Secret: defaultSecret, Count: 1, Window: 3}
 	h = NewHOTP(&c)
 	v, i = h.Check("969429")
 	if !v || i != 3 {
 		t.Error("HOTP did not count into the future as expected")
 	}
 
-	c = HotpConfig{secret: defaultSecret, count: 2, window: 3}
+	c = HotpConfig{Secret: defaultSecret, Count: 2, Window: 3}
 	h = NewHOTP(&c)
 	v, i = h.Check("520489")
 	if v {
@@ -71,7 +71,7 @@ func TestCheck(t *testing.T) {
 
 func TestSync(t *testing.T) {
 
-	c := HotpConfig{secret: defaultSecret}
+	c := HotpConfig{Secret: defaultSecret}
 	h := NewHOTP(&c)
 	v, i := h.Sync("755224", "287082")
 	if !v || i != 2 {
@@ -97,19 +97,19 @@ func TestSync(t *testing.T) {
 func TestNewHotp(t *testing.T) {
 	dConfig := HotpConfig{}
 	dToken := NewHOTP(&dConfig)
-	if len(dToken.secret) != 20 ||
-		dToken.count != 0 ||
-		dToken.length != 6 ||
-		dToken.window != 5 {
+	if len(dToken.Secret) != 20 ||
+		dToken.Count != 0 ||
+		dToken.Length != 6 ||
+		dToken.Window != 5 {
 		t.Errorf("NewHOTP (default) returned an object with unexpected properties %+v", dToken)
 	}
 
 	cConfig := HotpConfig{"secret", 5, 3, 100, false, "sha1"}
 	cToken := NewHOTP(&cConfig)
-	if cToken.secret != "secret" ||
-		cToken.count != 5 ||
-		cToken.length != 3 ||
-		cToken.window != 100 {
+	if cToken.Secret != "secret" ||
+		cToken.Count != 5 ||
+		cToken.Length != 3 ||
+		cToken.Window != 100 {
 		t.Errorf("NewHOTP (custom) returned an object with unexpected properties %+v", cToken)
 	}
 }

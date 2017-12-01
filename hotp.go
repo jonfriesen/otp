@@ -13,61 +13,61 @@ import (
 
 // Hotp is a struct holding the details for a hmac-sha1 otp
 type Hotp struct {
-	secret   string
-	count    int
-	length   int
-	window   int
-	isBase32 bool
-	hasher   func() hash.Hash
+	Secret   string
+	Count    int
+	Length   int
+	Window   int
+	IsBase32 bool
+	Hasher   func() hash.Hash
 }
 
 // HotpConfig holds user friendly configurations for creating
 // tokens using the NewHOTP function otherwise the Hotp
 // object can be created independantly.
 type HotpConfig struct {
-	secret    string
-	count     int
-	length    int
-	window    int
-	useBase32 bool
-	crypto    string
+	Secret    string
+	Count     int
+	Length    int
+	Window    int
+	UseBase32 bool
+	Crypto    string
 }
 
 // NewHOTP constructor for hotp object
 func NewHOTP(c *HotpConfig) *Hotp {
 	h := new(Hotp)
 
-	if len(c.secret) == 0 {
-		h.secret = Secret(c.useBase32)
+	if len(c.Secret) == 0 {
+		h.Secret = Secret(c.UseBase32)
 	} else {
-		h.secret = c.secret
+		h.Secret = c.Secret
 	}
 
-	if c.count == 0 {
-		h.count = 0 // TODO this should be a const default value
+	if c.Count == 0 {
+		h.Count = 0 // TODO this should be a const default value
 	} else {
-		h.count = c.count
+		h.Count = c.Count
 	}
 
-	if c.length == 0 {
-		h.length = 6 // TODO this should be a const default value
+	if c.Length == 0 {
+		h.Length = 6 // TODO this should be a const default value
 	} else {
-		h.length = c.length
+		h.Length = c.Length
 	}
 
-	if c.window == 0 {
-		h.window = 5
+	if c.Window == 0 {
+		h.Window = 5
 	} else {
-		h.window = c.window
+		h.Window = c.Window
 	}
 
-	switch c.crypto {
+	switch c.Crypto {
 	case "sha256":
-		h.hasher = sha256.New
+		h.Hasher = sha256.New
 	case "sha512":
-		h.hasher = sha512.New
+		h.Hasher = sha512.New
 	default:
-		h.hasher = sha1.New
+		h.Hasher = sha1.New
 	}
 
 	return h
@@ -85,16 +85,16 @@ func (h Hotp) Generate() string {
 
 	text := make([]byte, 8)
 	for i := len(text) - 1; i >= 0; i-- {
-		text[i] = byte(h.count & 0xff)
-		h.count = h.count >> 8
+		text[i] = byte(h.Count & 0xff)
+		h.Count = h.Count >> 8
 	}
 
 	var hash []byte
-	if h.isBase32 {
-		decodedSecret, _ := base32.StdEncoding.DecodeString(h.secret)
-		hash = hmacSha(string(decodedSecret), text, h.hasher)
+	if h.IsBase32 {
+		decodedSecret, _ := base32.StdEncoding.DecodeString(h.Secret)
+		hash = hmacSha(string(decodedSecret), text, h.Hasher)
 	} else {
-		hash = hmacSha(h.secret, text, h.hasher)
+		hash = hmacSha(h.Secret, text, h.Hasher)
 	}
 
 	// Where our slice starts (lower 4 bits as offset)
@@ -108,10 +108,10 @@ func (h Hotp) Generate() string {
 		(int(hash[offset+3] & 0xff)))
 
 	// Produces the actual OTP
-	otp := binary % int(math.Pow10(h.length))
+	otp := binary % int(math.Pow10(h.Length))
 
 	result := fmt.Sprintf("%d", otp)
-	for len(result) < h.length {
+	for len(result) < h.Length {
 		result = "0" + result
 	}
 
@@ -122,12 +122,12 @@ func (h Hotp) Generate() string {
 // accepts secret, count, length to generate the OTP's to validate
 // an incoming OTP, and how many times to increase the validation count
 func (h Hotp) Check(otp string) (bool, int) {
-	for i := 0; i < h.window; i++ {
+	for i := 0; i < h.Window; i++ {
 		o := h.Generate()
 		if o == otp {
-			return true, int(h.count)
+			return true, int(h.Count)
 		}
-		h.count++
+		h.Count++
 	}
 	return false, 0
 }
@@ -136,7 +136,7 @@ func (h Hotp) Check(otp string) (bool, int) {
 // max of 100 checks returns success and new count location
 func (h Hotp) Sync(otp1 string, otp2 string) (bool, int) {
 
-	h.window = 100
+	h.Window = 100
 
 	v, i := h.Check(otp1)
 
@@ -146,8 +146,8 @@ func (h Hotp) Sync(otp1 string, otp2 string) (bool, int) {
 	}
 
 	// check second otp if first was succesful
-	h.count = h.count + i + 1
-	h.window = 1
+	h.Count = h.Count + i + 1
+	h.Window = 1
 	v2, i2 := h.Check(otp2)
 	if v2 {
 		// the new location of the count

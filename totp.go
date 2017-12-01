@@ -10,70 +10,70 @@ import (
 
 // Totp is a struct holding the details for a time based hmac-sha1 otp
 type Totp struct {
-	secret     string
-	timeBox    time.Time
-	length     int
-	window     int
-	windowSize int
-	isBase32   bool
-	hasher     func() hash.Hash
+	Secret     string
+	TimeBox    time.Time
+	Length     int
+	Window     int
+	WindowSize int
+	IsBase32   bool
+	Hasher     func() hash.Hash
 }
 
 // TotpConfig holds user friendly configurations for creating
 // tokens using the NewTOTP function otherwise the Hotp
 // object can be created independantly.
 type TotpConfig struct {
-	secret     string
-	time       time.Time
-	length     int
-	window     int
-	windowSize int
-	useBase32  bool
-	crypto     string
+	Secret     string
+	Time       time.Time
+	Length     int
+	Window     int
+	WindowSize int
+	UseBase32  bool
+	Crypto     string
 }
 
 // NewTOTP constructor for hotp object
-// func NewTOTP(secret string, timeBox time.Time, length int, window int, windowSize int, isBase32 bool, hasher func() hash.Hash) *Totp {
+// func NewTOTP(secret string, TimeBox time.Time, length int, window int, windowSize int, isBase32 bool, hasher func() hash.Hash) *Totp {
 func NewTOTP(c *TotpConfig) *Totp {
 	t := new(Totp)
 
-	if len(c.secret) == 0 {
-		t.secret = Secret(c.useBase32)
+	if len(c.Secret) == 0 {
+		t.Secret = Secret(c.UseBase32)
 	} else {
-		t.secret = c.secret
+		t.Secret = c.Secret
 	}
 
-	if c.time.IsZero() {
-		t.timeBox = time.Now() // TODO this should be a const default value
+	if c.Time.IsZero() {
+		t.TimeBox = time.Now() // TODO this should be a const default value
 	} else {
-		t.timeBox = c.time
+		t.TimeBox = c.Time
 	}
 
-	if c.length == 0 {
-		t.length = 8 // TODO this should be a const default value
+	if c.Length == 0 {
+		t.Length = 8 // TODO this should be a const default value
 	} else {
-		t.length = c.length
+		t.Length = c.Length
 	}
 
-	if c.window == 0 {
-		t.window = 30
+	if c.Window == 0 {
+		t.Window = 30
 	} else {
-		t.window = c.window
+		t.Window = c.Window
 	}
 
-	if c.windowSize == 0 {
-		t.windowSize = 2
+	if c.WindowSize == 0 {
+		t.WindowSize = 2
 	} else {
-		t.windowSize = c.windowSize
+		t.WindowSize = c.WindowSize
 	}
 
-	switch c.crypto {
+	switch c.Crypto {
 	case "sha256":
-		t.hasher = sha256.New
+		t.Hasher = sha256.New
 	case "sha512":
-		t.hasher = sha512.New
+		t.Hasher = sha512.New
 	default:
-		t.hasher = sha1.New
+		t.Hasher = sha1.New
 	}
 
 	return t
@@ -82,14 +82,14 @@ func NewTOTP(c *TotpConfig) *Totp {
 // Generate Generates an TOTP
 // Note: TOTP recommended length is 8 as per RFC 6238
 func (t Totp) Generate() string {
-	tw := int(t.timeBox.Unix()) / t.window
+	tw := int(t.TimeBox.Unix()) / t.Window
 	h := Hotp{
-		secret:   t.secret,
-		count:    tw,
-		length:   t.length,
-		window:   t.window,
-		isBase32: t.isBase32,
-		hasher:   t.hasher,
+		Secret:   t.Secret,
+		Count:    tw,
+		Length:   t.Length,
+		Window:   t.Window,
+		IsBase32: t.IsBase32,
+		Hasher:   t.Hasher,
 	}
 	return h.Generate()
 }
@@ -99,10 +99,10 @@ func (t Totp) Generate() string {
 // an incoming OTP, and how many times to increase the validation count
 func (t Totp) Check(otp string) bool {
 
-	otpTime := t.timeBox
+	otpTime := t.TimeBox
 	// Iterate over the stepSize on both sides totalComparisons = stepSize * 2
-	for i := -1 * t.windowSize; i < t.windowSize; i++ {
-		t.timeBox = otpTime.Add(time.Second * time.Duration(i*t.window))
+	for i := -1 * t.WindowSize; i < t.WindowSize; i++ {
+		t.TimeBox = otpTime.Add(time.Second * time.Duration(i*t.Window))
 
 		if t.Generate() == otp {
 			return true

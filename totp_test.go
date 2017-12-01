@@ -56,7 +56,7 @@ func TestGenerateTotp(t *testing.T) {
 
 	for tm, otpHashMap := range timeMap {
 		for _, hc := range otpHashMap {
-			c := TotpConfig{secret: hc.secret, time: tm, crypto: hc.crypto}
+			c := TotpConfig{Secret: hc.secret, Time: tm, Crypto: hc.crypto}
 			otp := NewTOTP(&c)
 			rOtp := otp.Generate()
 
@@ -72,7 +72,7 @@ func TestCheckTotp(t *testing.T) {
 	for tm, otpHashMap := range timeMap {
 		for _, hc := range otpHashMap {
 
-			c := TotpConfig{secret: hc.secret, time: tm, crypto: hc.crypto}
+			c := TotpConfig{Secret: hc.secret, Time: tm, Crypto: hc.crypto}
 			otp := NewTOTP(&c)
 			isValid := otp.Check(hc.otp)
 			if !isValid {
@@ -89,8 +89,8 @@ func TestCheckTotp(t *testing.T) {
 	}
 
 	c := TotpConfig{
-		secret: defaultSecret,
-		time:   time.Date(1970, 1, 1, 0, 0, 59, 0, time.UTC),
+		Secret: defaultSecret,
+		Time:   time.Date(1970, 1, 1, 0, 0, 59, 0, time.UTC),
 	}
 	otp := NewTOTP(&c)
 	isValid := otp.Check("12345678")
@@ -102,19 +102,19 @@ func TestCheckTotp(t *testing.T) {
 func TestNewTOTP(t *testing.T) {
 	testTime := time.Date(1970, 1, 1, 0, 0, 59, 0, time.UTC)
 	cConfig := TotpConfig{
-		secret:     "secret",
-		time:       testTime,
-		length:     10,
-		window:     45,
-		windowSize: 3,
+		Secret:     "secret",
+		Time:       testTime,
+		Length:     10,
+		Window:     45,
+		WindowSize: 3,
 	}
 	cToken := NewTOTP(&cConfig)
 
-	if cToken.secret != "secret" ||
-		cToken.timeBox != testTime ||
-		cToken.length != 10 ||
-		cToken.window != 45 ||
-		cToken.windowSize != 3 {
+	if cToken.Secret != "secret" ||
+		cToken.TimeBox != testTime ||
+		cToken.Length != 10 ||
+		cToken.Window != 45 ||
+		cToken.WindowSize != 3 {
 		t.Errorf("NewTOTP (custom) returned an object with unexpected properties %+v", cToken)
 	}
 
@@ -123,17 +123,17 @@ func TestNewTOTP(t *testing.T) {
 	dToken := NewTOTP(&dConfig)
 
 	isTimeSimilar :=
-		testTime.Minute() == dToken.timeBox.Minute() &&
-			testTime.Hour() == dToken.timeBox.Hour() &&
-			testTime.Day() == dToken.timeBox.Day() &&
-			testTime.Month() == dToken.timeBox.Month() &&
-			testTime.Year() == dToken.timeBox.Year()
+		testTime.Minute() == dToken.TimeBox.Minute() &&
+			testTime.Hour() == dToken.TimeBox.Hour() &&
+			testTime.Day() == dToken.TimeBox.Day() &&
+			testTime.Month() == dToken.TimeBox.Month() &&
+			testTime.Year() == dToken.TimeBox.Year()
 
-	if len(dToken.secret) != 20 ||
+	if len(dToken.Secret) != 20 ||
 		!isTimeSimilar ||
-		dToken.length != 8 ||
-		dToken.window != 30 ||
-		dToken.windowSize != 2 {
+		dToken.Length != 8 ||
+		dToken.Window != 30 ||
+		dToken.WindowSize != 2 {
 		t.Errorf("NewTOTP (default) returned an object with unexpected properties %+v", dToken)
 	}
 }
