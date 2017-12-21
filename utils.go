@@ -8,7 +8,7 @@ import (
 
 // Secret Quickly Generates a Secret of 20 characters
 func Secret(isBase32 bool) string {
-	const alphaNumericValues = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890"
+	const alphaNumericValues = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"
 	const length = 20
 	const (
 		idBits = 6             // 6 bits to represent a letter index

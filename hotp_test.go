@@ -100,16 +100,18 @@ func TestNewHotp(t *testing.T) {
 	if len(dToken.Secret) != 20 ||
 		dToken.Count != 0 ||
 		dToken.Length != 6 ||
-		dToken.Window != 5 {
+		dToken.Window != 5 ||
+		dToken.IsBase32 != false {
 		t.Errorf("NewHOTP (default) returned an object with unexpected properties %+v", dToken)
 	}
 
-	cConfig := HotpConfig{"secret", 5, 3, 100, false, "sha1"}
+	cConfig := HotpConfig{"secret", 5, 3, 100, true, "sha1"}
 	cToken := NewHOTP(&cConfig)
 	if cToken.Secret != "secret" ||
 		cToken.Count != 5 ||
 		cToken.Length != 3 ||
-		cToken.Window != 100 {
+		cToken.Window != 100 ||
+		cToken.IsBase32 != true {
 		t.Errorf("NewHOTP (custom) returned an object with unexpected properties %+v", cToken)
 	}
 }

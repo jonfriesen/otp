@@ -107,6 +107,7 @@ func TestNewTOTP(t *testing.T) {
 		Length:     10,
 		Window:     45,
 		WindowSize: 3,
+		UseBase32:  true,
 	}
 	cToken := NewTOTP(&cConfig)
 
@@ -114,7 +115,8 @@ func TestNewTOTP(t *testing.T) {
 		cToken.TimeBox != testTime ||
 		cToken.Length != 10 ||
 		cToken.Window != 45 ||
-		cToken.WindowSize != 3 {
+		cToken.WindowSize != 3 ||
+		cToken.IsBase32 != true {
 		t.Errorf("NewTOTP (custom) returned an object with unexpected properties %+v", cToken)
 	}
 
@@ -133,7 +135,8 @@ func TestNewTOTP(t *testing.T) {
 		!isTimeSimilar ||
 		dToken.Length != 8 ||
 		dToken.Window != 30 ||
-		dToken.WindowSize != 2 {
+		dToken.WindowSize != 2 ||
+		dToken.IsBase32 != false {
 		t.Errorf("NewTOTP (default) returned an object with unexpected properties %+v", dToken)
 	}
 }

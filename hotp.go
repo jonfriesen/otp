@@ -61,6 +61,8 @@ func NewHOTP(c *HotpConfig) *Hotp {
 		h.Window = c.Window
 	}
 
+	h.IsBase32 = c.UseBase32
+
 	switch c.Crypto {
 	case "sha256":
 		h.Hasher = sha256.New

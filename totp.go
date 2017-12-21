@@ -67,6 +67,8 @@ func NewTOTP(c *TotpConfig) *Totp {
 		t.WindowSize = c.WindowSize
 	}
 
+	t.IsBase32 = c.UseBase32
+
 	switch c.Crypto {
 	case "sha256":
 		t.Hasher = sha256.New
