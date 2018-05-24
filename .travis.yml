@@ -3,9 +3,13 @@ go:
  - 1.9.0
  - release
  - tip
-before_install:
-  - go get github.com/mattn/goveralls
+# before_install:
+#   - go get github.com/mattn/goveralls
 script:
-  - $GOPATH/bin/goveralls -service=travis-ci
+  - go test -race -coverprofile=coverage.txt -covermode=atomic
+after_success:
+  - bash <(curl -s https://codecov.io/bash)
+  # script:
+#   - $GOPATH/bin/goveralls -service=travis-ci
 # script:
 #  - go test -v ./...
