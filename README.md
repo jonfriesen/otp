@@ -1,5 +1,7 @@
 # ![OneTimePasswords](media/otp_logo.png)
 
+[![Build Status](https://travis-ci.org/jonfriesen/otp.svg?branch=master)](https://travis-ci.org/jonfriesen/otp)
+
 This package is an implementation of [RFC 4226: HOTP: An HMAC-Based One-Time Password Algorithm](https://tools.ietf.org/html/rfc4226) and [RFC 6238: TOTP: Time-Based One-Time Password Algorithm](https://tools.ietf.org/html/rfc6238) with slight deviations from the RFC based on the algorithmic reference implementation and tested using the RFC test values to ensure comaptibility with other HOTP and TOTP systems. 
 
 ## Installation
