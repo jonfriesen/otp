@@ -1,7 +1,12 @@
 package otp
 
 import (
+	"crypto/hmac"
 	"crypto/sha1"
+	"crypto/sha256"
+	"crypto/sha512"
+	"encoding/base32"
+	"hash"
 	"reflect"
 	"testing"
 )
@@ -29,7 +34,6 @@ func TestGenerate(t *testing.T) {
 	for i, v := range testValues {
 		c := HotpConfig{Secret: defaultSecret, Count: i}
 		h := NewHOTP(&c)
-		// h := NewHOTP(defaultSecret, i, 0, 0, false, nil)
 		h.Count = i
 		otp := h.Generate()
 		if otp != v {
@@ -37,6 +41,8 @@ func TestGenerate(t *testing.T) {
 		}
 
 		// Base32 tests
+		c.UseBase32 = true
+		c.Secret = base32.StdEncoding.EncodeToString([]byte(defaultSecret))
 		h32 := NewHOTP(&c)
 		h32.Count = i
 		otp32 := h32.Generate()
@@ -114,4 +120,40 @@ func TestNewHotp(t *testing.T) {
 		cToken.IsBase32 != true {
 		t.Errorf("NewHOTP (custom) returned an object with unexpected properties %+v", cToken)
 	}
+
+	hmac256Config := HotpConfig{
+		Crypto: "sha256",
+	}
+	hmac256Token := NewHOTP(&hmac256Config)
+	if hmac256Token.Hasher == nil {
+		t.Error("NewHOTP (hmac256) did not return a function")
+	}
+	hashers256Match := compareHashers(hmac256Token.Hasher, sha256.New)
+	if !hashers256Match {
+		t.Error("NewHOTP (hmac256) did not match the expected value")
+	}
+
+	hmac512Config := HotpConfig{
+		Crypto: "sha512",
+	}
+	hmac512Token := NewHOTP(&hmac512Config)
+	if hmac512Token.Hasher == nil {
+		t.Error("NewHOTP (hmac512) did not return a function")
+	}
+	hashers512Match := compareHashers(hmac512Token.Hasher, sha512.New)
+	if !hashers512Match {
+		t.Error("NewHOTP (hmac512) did not match the expected value")
+	}
+}
+
+func compareHashers(h1, h2 func() hash.Hash) bool {
+	key := []byte("hasher test key")
+	m := []byte("hasher test message")
+
+	s1 := hmac.New(h1, key)
+	s1.Write(m)
+	s2 := hmac.New(h2, key)
+	s2.Write(m)
+
+	return hmac.Equal(s1.Sum(nil), s2.Sum(nil))
 }
