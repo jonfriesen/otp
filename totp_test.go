@@ -52,6 +52,8 @@ func getTimeTestMap() map[time.Time][]hashConfig {
 }
 
 func TestGenerateTotp(t *testing.T) {
+	t.Parallel()
+
 	timeMap := getTimeTestMap()
 
 	for tm, otpHashMap := range timeMap {
@@ -67,7 +69,9 @@ func TestGenerateTotp(t *testing.T) {
 	}
 }
 
-func TestCheckTotp(t *testing.T) {
+func TestCheckTotp_validProgression(t *testing.T) {
+	t.Parallel()
+
 	timeMap := getTimeTestMap()
 	for tm, otpHashMap := range timeMap {
 		for _, hc := range otpHashMap {
@@ -87,6 +91,10 @@ func TestCheckTotp(t *testing.T) {
 			}
 		}
 	}
+}
+
+func TestCheckTotp_invalid(t *testing.T) {
+	t.Parallel()
 
 	c := TotpConfig{
 		Secret: defaultSecret,
@@ -95,11 +103,13 @@ func TestCheckTotp(t *testing.T) {
 	otp := NewTOTP(&c)
 	isValid := otp.Check("12345678")
 	if isValid {
-		t.Errorf("Expected %v to be invalid but was 94287082", isValid)
+		t.Errorf("Expected %v to be false but was 94287082", isValid)
 	}
 }
 
-func TestNewTOTP(t *testing.T) {
+func TestNewTOTP_customConfig(t *testing.T) {
+	t.Parallel()
+
 	testTime := time.Date(1970, 1, 1, 0, 0, 59, 0, time.UTC)
 	cConfig := TotpConfig{
 		Secret:     "secret",
@@ -119,8 +129,12 @@ func TestNewTOTP(t *testing.T) {
 		cToken.IsBase32 != true {
 		t.Errorf("NewTOTP (custom) returned an object with unexpected properties %+v", cToken)
 	}
+}
 
-	testTime = time.Now()
+func TestNewTOTP_defaultConfig(t *testing.T) {
+	t.Parallel()
+
+	testTime := time.Now()
 	dConfig := TotpConfig{}
 	dToken := NewTOTP(&dConfig)
 
