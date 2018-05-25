@@ -11,10 +11,7 @@ import (
 	"testing"
 )
 
-const (
-	defaultSecret string = "12345678901234567890"
-	defaultLength int    = 6
-)
+const defaultSecret string = "12345678901234567890"
 
 func TestHmacSha(t *testing.T) {
 	t.Parallel()
@@ -25,7 +22,7 @@ func TestHmacSha(t *testing.T) {
 
 	expected := []byte{206, 196, 29, 189, 198, 222, 88, 115, 62, 215, 116, 67, 206, 130, 89, 12, 146, 242, 197, 164}
 
-	if reflect.DeepEqual(bs, expected) == false {
+	if !reflect.DeepEqual(bs, expected) {
 		t.Errorf("HMAC SHA1 is wrong: %+v", bs)
 	}
 }
@@ -103,12 +100,12 @@ func TestSync(t *testing.T) {
 		t.Error("HOTP future sync failed")
 	}
 
-	v, i = h.Sync("123456", "520489")
+	v, _ = h.Sync("123456", "520489")
 	if v {
 		t.Error("HOTP expected to not find first OTP")
 	}
 
-	v, i = h.Sync("254676", "520489")
+	v, _ = h.Sync("254676", "520489")
 	if v {
 		t.Error("HOTP expected to not find second OTP")
 	}
@@ -123,7 +120,7 @@ func TestNewHotp_defaultConfig(t *testing.T) {
 		dToken.Count != 0 ||
 		dToken.Length != 6 ||
 		dToken.Window != 5 ||
-		dToken.IsBase32 != false {
+		dToken.IsBase32 {
 		t.Errorf("NewHOTP (default) returned an object with unexpected properties %+v", dToken)
 	}
 }
@@ -137,7 +134,7 @@ func TestNewHotp_customConfig(t *testing.T) {
 		cToken.Count != 5 ||
 		cToken.Length != 3 ||
 		cToken.Window != 100 ||
-		cToken.IsBase32 != true {
+		!cToken.IsBase32 {
 		t.Errorf("NewHOTP (custom) returned an object with unexpected properties %+v", cToken)
 	}
 }

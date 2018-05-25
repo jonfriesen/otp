@@ -126,7 +126,7 @@ func TestNewTOTP_customConfig(t *testing.T) {
 		cToken.Length != 10 ||
 		cToken.Window != 45 ||
 		cToken.WindowSize != 3 ||
-		cToken.IsBase32 != true {
+		!cToken.IsBase32 {
 		t.Errorf("NewTOTP (custom) returned an object with unexpected properties %+v", cToken)
 	}
 }
@@ -138,19 +138,18 @@ func TestNewTOTP_defaultConfig(t *testing.T) {
 	dConfig := TotpConfig{}
 	dToken := NewTOTP(&dConfig)
 
-	isTimeSimilar :=
-		testTime.Minute() == dToken.TimeBox.Minute() &&
-			testTime.Hour() == dToken.TimeBox.Hour() &&
-			testTime.Day() == dToken.TimeBox.Day() &&
-			testTime.Month() == dToken.TimeBox.Month() &&
-			testTime.Year() == dToken.TimeBox.Year()
+	isTimeSimilar := testTime.Minute() == dToken.TimeBox.Minute() &&
+		testTime.Hour() == dToken.TimeBox.Hour() &&
+		testTime.Day() == dToken.TimeBox.Day() &&
+		testTime.Month() == dToken.TimeBox.Month() &&
+		testTime.Year() == dToken.TimeBox.Year()
 
 	if len(dToken.Secret) != 20 ||
 		!isTimeSimilar ||
 		dToken.Length != 8 ||
 		dToken.Window != 30 ||
 		dToken.WindowSize != 2 ||
-		dToken.IsBase32 != false {
+		dToken.IsBase32 {
 		t.Errorf("NewTOTP (default) returned an object with unexpected properties %+v", dToken)
 	}
 }
