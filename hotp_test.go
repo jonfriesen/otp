@@ -17,6 +17,8 @@ const (
 )
 
 func TestHmacSha(t *testing.T) {
+	t.Parallel()
+
 	input := []byte("test-input")
 
 	bs := hmacSha(defaultSecret, input, sha1.New)
@@ -29,6 +31,7 @@ func TestHmacSha(t *testing.T) {
 }
 
 func TestGenerate(t *testing.T) {
+	t.Parallel()
 	testValues := []string{"755224", "287082", "359152", "969429", "338314", "254676", "287922", "162583", "399871", "520489"}
 
 	for i, v := range testValues {
@@ -52,30 +55,41 @@ func TestGenerate(t *testing.T) {
 	}
 }
 
-func TestCheck(t *testing.T) {
+func TestCheck_accurateCount(t *testing.T) {
+	t.Parallel()
+
 	c := HotpConfig{Secret: defaultSecret, Window: 1}
 	h := NewHOTP(&c)
 	v, i := h.Check("755224")
 	if !v || i != 0 {
 		t.Error("HOTP at spot 1 did not succeed")
 	}
+}
 
-	c = HotpConfig{Secret: defaultSecret, Count: 1, Window: 3}
-	h = NewHOTP(&c)
-	v, i = h.Check("969429")
+func TestCheck_futureCount(t *testing.T) {
+	t.Parallel()
+
+	c := HotpConfig{Secret: defaultSecret, Count: 1, Window: 3}
+	h := NewHOTP(&c)
+	v, i := h.Check("969429")
 	if !v || i != 3 {
 		t.Error("HOTP did not count into the future as expected")
 	}
+}
 
-	c = HotpConfig{Secret: defaultSecret, Count: 2, Window: 3}
-	h = NewHOTP(&c)
-	v, i = h.Check("520489")
+func TestCheck_failure(t *testing.T) {
+	t.Parallel()
+
+	c := HotpConfig{Secret: defaultSecret, Count: 2, Window: 3}
+	h := NewHOTP(&c)
+	v, _ := h.Check("520489")
 	if v {
 		t.Error("HOTP Check succeeded when expected to fail")
 	}
 }
 
 func TestSync(t *testing.T) {
+	t.Parallel()
 
 	c := HotpConfig{Secret: defaultSecret}
 	h := NewHOTP(&c)
@@ -100,7 +114,9 @@ func TestSync(t *testing.T) {
 	}
 }
 
-func TestNewHotp(t *testing.T) {
+func TestNewHotp_defaultConfig(t *testing.T) {
+	t.Parallel()
+
 	dConfig := HotpConfig{}
 	dToken := NewHOTP(&dConfig)
 	if len(dToken.Secret) != 20 ||
@@ -110,6 +126,10 @@ func TestNewHotp(t *testing.T) {
 		dToken.IsBase32 != false {
 		t.Errorf("NewHOTP (default) returned an object with unexpected properties %+v", dToken)
 	}
+}
+
+func TestNewHotp_customConfig(t *testing.T) {
+	t.Parallel()
 
 	cConfig := HotpConfig{"secret", 5, 3, 100, true, "sha1"}
 	cToken := NewHOTP(&cConfig)
@@ -120,6 +140,10 @@ func TestNewHotp(t *testing.T) {
 		cToken.IsBase32 != true {
 		t.Errorf("NewHOTP (custom) returned an object with unexpected properties %+v", cToken)
 	}
+}
+
+func TestNewHotp_sha256(t *testing.T) {
+	t.Parallel()
 
 	hmac256Config := HotpConfig{
 		Crypto: "sha256",
@@ -132,6 +156,10 @@ func TestNewHotp(t *testing.T) {
 	if !hashers256Match {
 		t.Error("NewHOTP (hmac256) did not match the expected value")
 	}
+}
+
+func TestNewHotp_sha512(t *testing.T) {
+	t.Parallel()
 
 	hmac512Config := HotpConfig{
 		Crypto: "sha512",
