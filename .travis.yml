@@ -8,7 +8,6 @@ language: go
 # are allowed to fail on Go tip.
 go:
   - 1.9
-  - 1.10.0
   - 1.11.1
   - tip
 
