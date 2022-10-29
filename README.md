@@ -41,4 +41,4 @@ The OTP package was created to offer a simple, close implementation of RFC 4226 
 Pull Requests are welcome, please include tests covering your contributions. 
 
 
-<sub>[MIT License Copyright (c) 2017 Jonathan Friesen](./LICENSE)</sub>
+<sub>[MIT License Copyright (c) 2022 Jonathan Friesen](./LICENSE)</sub>
