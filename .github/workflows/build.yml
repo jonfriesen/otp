@@ -3,28 +3,35 @@ name: build
 on:
   push:
     branches:
-    - master
+      - master
   pull_request:
     branches:
-    - master
+      - master
 
 jobs:
   build:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Set up Go 1.12
-      uses: actions/setup-go@v1
-      with:
-        go-version: 1.12
-      id: go
-    - name: Check out code
-      uses: actions/checkout@v1
-    - name: Vet
-      run: go vet ./...
-      env: 
-        GO111MODULE: on
-    - name: Test
-      run: go test ./... -race -coverprofile=coverage.txt -covermode=atomic
-      env:
-        GO111MODULE: on
+      - name: Set up Go 1.19
+        uses: actions/setup-go@v1
+        with:
+          go-version: 1.19
+        id: go
+
+      - name: Check out code
+        uses: actions/checkout@v1
+
+      - name: Vet
+        run: go vet ./...
+        env:
+          GO111MODULE: on
+
+      - name: Test
+        run: go run gotest.tools/gotestsum@latest --junitfile unit-tests.xml --format pkgname
+
+      - name: Test Summary
+        uses: test-summary/action@v2
+        with:
+          paths: "unit-tests.xml"
+        if: always()
